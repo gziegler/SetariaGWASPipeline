@@ -37,7 +37,8 @@ All paths are relative to the ./src/ folder.
 * Uses vcftools to parse each vcf chromosome file:
   1. Remove minor alleles at 0.1 with --maf 0.1 --max-maf 0.9
   2. Make sure there are only (and at least) 2 alleles --min-alleles 2 --max-alleles 2
-  3. Writes SNP file out in 012 formatted matrix with prefix `3.from12.setaria.maf0.1.maxMissing0.1`, rownames (individuals) are in the .012.indv and positions are in .012.pos
+  3. Keeps only lines present in `../data/genotype/keepLines.txt`
+  4. Writes SNP file out in 012 formatted matrix with prefix `3.from12.setaria.maf0.1.maxMissing0.1`, rownames (individuals) are in the .012.indv and positions are in .012.pos
   
 ### 4.convertGenotypeFile.R
 * Convert 012 VCF files to a R matrix in format for MLMM

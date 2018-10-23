@@ -4,7 +4,7 @@ library(ggplot2)
 library(data.table)
 library(ggpubr)
 library(lmomco)
-phenotype <- read.table("../rawData/phenotype/Setaria_IR_2016_datsetset_GWAS.csv",header=TRUE,stringsAsFactors = FALSE,sep=",")
+phenotype <- read.table("../data/phenotype/rawPhenotypeDatasets/Setaria_IR_2016_datsetset_GWAS.csv",header=TRUE,stringsAsFactors = FALSE,sep=",")
 table(phenotype$Awning[phenotype$Genotype=="B100"])
 #ggplot(phenotype,aes(y=Jul_11_IR,x=factor(Awning),fill=Treatment))+geom_boxplot()
 #ggplot(phenotype,aes(y=Jul_21_IR,x=factor(Awning),fill=Treatment))+geom_boxplot()
@@ -190,11 +190,11 @@ for(i in traits){
 
 dev.off()
 
-write.table(widePheno,"../data/2.Setaria_IR_2016_datsetset_GWAS.BLUPsandBLUEs.csv",sep=",",row.names=FALSE,col.names=T)
-write.table(H2,"../results/1.setariaIR.H2.csv",sep=",",row.names = FALSE,col.names=T)
+write.table(widePheno,"../data/phenotype/2.Setaria_IR_2016_datsetset_GWAS.BLUPsandBLUEs.csv",sep=",",row.names=FALSE,col.names=T)
+write.table(H2,"../results/2.setariaIR.H2.csv",sep=",",row.names = FALSE,col.names=T)
 
 #######Open csv containing info about lines in Genotype file#####
-genoInfo <- read.table("../rawData/genotype/Setaria_597_diversity_samples.csv",sep=",",header=TRUE,stringsAsFactors = FALSE,comment.char = "")
+genoInfo <- read.table("../data/genotype/Setaria_597_diversity_samples.csv",sep=",",header=TRUE,stringsAsFactors = FALSE,comment.char = "")
 genoInfo$Genotype <- gsub("_setaria_12","",genoInfo$New_name)
 length(intersect(genoInfo$Genotype,widePheno$Genotype))
 setdiff(widePheno$Genotype,genoInfo$Genotype)
