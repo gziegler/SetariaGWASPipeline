@@ -1,4 +1,11 @@
+rm(list=ls())
 library(data.table)
+library(doSNOW)
+
+#setup parallel backend to use many processors
+cl <- makeCluster(9, outfile="")
+registerDoSNOW(cl)
+
 load("../data/genotype/3.FilteredGenotypeFile.MatrixFormat.noscaffold.hetFilter0.25.maf0.1.rda")
 
 dist <- 1
@@ -118,26 +125,31 @@ filterSNPsbyCor <- function(genotype,snpInfo,neighborCors,highCorThreshold=0.9,d
 
 
 
-filterResults <- list()
-filterGeno <- matrix()
-filterInfo <- data.table()
-for(i in 1:9){
+parRes <- foreach(i = 1:9) %dopar% {
   print(paste("Running on chromsome",i))
   thisNeighborCor <- neighborCors[which(alleleTable$chr==i)]
   thisGeno <- genoMatrix[which(alleleTable$chr==i),]
   thisSnpInfo <- alleleTable[which(alleleTable$chr==i),]
   filterOut <- filterSNPsbyCor(thisGeno,thisSnpInfo,thisNeighborCor)
+  return(filterOut)
+}
+stopCluster(cl)
+
+filterGeno <- matrix()
+filterInfo <- data.table()
+for(i in 1:length(parRes)){
+  thisGeno <- genoMatrix[which(alleleTable$chr==i),]
+  thisSnpInfo <- alleleTable[which(alleleTable$chr==i),]  
   if(nrow(filterGeno)<=1){
-    filterGeno <- thisGeno[filterOut$keeps,]
+    filterGeno <- thisGeno[parRes[[i]]$keeps,]
   }else{
-    filterGeno <- rbind(filterGeno,thisGeno[filterOut$keeps,])
+    filterGeno <- rbind(filterGeno,thisGeno[parRes[[i]]$keeps,])
   }
-  filterInfo <- rbind(filterInfo,thisSnpInfo[filterOut$keeps,])
-  filterResults[[i]] <- filterOut
-  rm(thisNeighborCor,thisGeno,thisSnpInfo,filterOut)
+  filterInfo <- rbind(filterInfo,thisSnpInfo[parRes[[i]]$keeps,])
+  rm(thisGeno,thisSnpInfo)  
 }
 
-sum(sapply(filterResults,function(x)length(x$keeps)))
+sum(sapply(parRes,function(x)length(x$keeps)))
 
 dist <- 1
 filterCors <- sapply(1:(nrow(filterGeno)-dist),function(x) {if(x%%100000==0){cat(".")};cor(filterGeno[x,],filterGeno[x+dist,],use="complete.obs")})

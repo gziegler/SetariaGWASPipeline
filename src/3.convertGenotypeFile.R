@@ -81,7 +81,7 @@ alleleTable[, chr := sapply(strsplit(alleleTable$chr, "_"), "[", 2)]
 alleleTable[, chr := as.numeric(chr)]
 message("Matrix conversion successul. Removing scaffold SNPs.")
 keepIdxs <- which(alleleTable$chr %in% c(1:9)) #matches first 1:4420660 indices identical(keepIdxs[1:4236621],c(1:4236621))
-message((nrow(alleleTable)-length(keepIdxs))," Scaffold snps removed. ", length(keepIDxs)," remaining.")
+message((nrow(alleleTable)-length(keepIdxs))," Scaffold snps removed. ", length(keepIdxs)," remaining.")
 genoMatrix <- genoMatrix[keepIdxs,]
 alleleTable <- alleleTable[keepIdxs,]
 rm(keepIdxs)
