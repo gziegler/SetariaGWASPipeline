@@ -10,9 +10,9 @@ notify_user      = Complete
 getenv           = true
 executable       = /shares/bioinfo/bin/vcftools
 arguments        = --vcf ../data/genotype/12.Setaria_598g_8.58M_withRef_imp_phased_maf0.01_FINAL.vcf --out ../data/genotype/2.from12.setaria.maf0.1.maxMissing0.1.allLines --012 --maf 0.1 --max-maf 0.9 --max-missing 0.9 --min-alleles 2 --max-alleles 2
-log              = ../data/genotype/3.initialFilter.vcfTools.log
-output           = ../data/genotype/3.initialFilter.vcfTools.out
-error            = ../data/genotype/3.initialFilter.vcfTools.error
+log              = ../data/genotype/2.initialFilter.vcfTools.log
+output           = ../data/genotype/2.initialFilter.vcfTools.out
+error            = ../data/genotype/2.initialFilter.vcfTools.error
 request_cpus     = 2
 request_memory   = 10G
 

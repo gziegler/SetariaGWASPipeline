@@ -1,0 +1,24 @@
+####################
+#
+# Runs 3.convertGenotypeFile.R
+# Reads in vcf file output by step 2
+#  Filters SNPs with maf<0.1, missing more than 20% of the calls, or those that have a het percent > 0.25
+#
+####################
+
+universe         = vanilla
+notify_user      = Complete
+getenv           = true
+executable       = /usr/bin/Rscript
+arguments        = ./3.convertGenotypeFile.R
+log              = ../data/genotype/3.convertGenotypetoRmatrix.log
+output           = ../data/genotype/3.convertGenotypetoRmatrix.out
+error            = ../data/genotype/3.convertGenotypetoRmatrix.error
+request_cpus     = 2
+request_memory   = 15G
+
+##  Do not edit  ##
+accounting_group = $ENV(CONDOR_GROUP)
+###################
+
+queue

@@ -12,9 +12,9 @@ hetThreshold <- 0.25 #Because of the density of SNPs, I REMOVE SNPs with a het v
 maf <- 0.1
 maxMissingBySNP <- 0.2
 
-geno <- fread(paste0("../data/genotype/3.from12.setaria.maf0.1.maxMissing0.1.012"),header=FALSE,sep="\t")
-indv <- read.table(paste0("../data/genotype/3.from12.setaria.maf0.1.maxMissing0.1.012.indv"),sep="\t",header=FALSE,stringsAsFactors = FALSE)
-snpInfo <- fread(paste0("../data/genotype/3.from12.setaria.maf0.1.maxMissing0.1.012.pos"),sep="\t",header=FALSE,stringsAsFactors = FALSE)
+geno <- fread(paste0("../data/genotype/2.from12.setaria.maf0.1.maxMissing0.1.012"),header=FALSE,sep="\t")
+indv <- read.table(paste0("../data/genotype/2.from12.setaria.maf0.1.maxMissing0.1.012.indv"),sep="\t",header=FALSE,stringsAsFactors = FALSE)
+snpInfo <- fread(paste0("../data/genotype/2.from12.setaria.maf0.1.maxMissing0.1.012.pos"),sep="\t",header=FALSE,stringsAsFactors = FALSE)
 setnames(snpInfo,c("V1","V2"),c("chr","pos"))
 #First column of geno is  rownumbers 0:length(lines)
 geno$V1 <- indv$V1
@@ -69,7 +69,7 @@ alleleTable[, discard := NULL]
 # 
 
 
-save(snp.subset,alleleTable,file="../data/genotype/4.FilteredGenotypeFile.hetFilter0.25.maf0.1.rda")
+save(snp.subset,alleleTable,file="../data/genotype/3.FilteredGenotypeFile.hetFilter0.25.maf0.1.rda")
 
 #we can now convert to a matrix and use the apply functions
 genoMatrix <- as.matrix(snp.subset)
@@ -90,7 +90,7 @@ genoMatrix <- genoMatrix[keepIdxs,]
 alleleTable <- alleleTable[keepIdxs,]
 rm(keepIdxs)
 
-save(genoMatrix,alleleTable,file="../data/genotype/4.FilteredGenotypeFile.MatrixFormat.noscaffold.hetFilter0.25.maf0.1.rda")
+save(genoMatrix,alleleTable,file="../data/genotype/3.FilteredGenotypeFile.MatrixFormat.noscaffold.hetFilter0.25.maf0.1.rda")
 
 #neighborDists <- neighborDists[keepIdxs]
 #neighborDists <- neighborDists[-length(neighborDists)]
