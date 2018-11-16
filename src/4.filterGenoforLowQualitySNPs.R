@@ -1,5 +1,5 @@
 library(data.table)
-load("../data/genotype/4.FilteredGenotypeFile.MatrixFormat.noscaffold.hetFilter0.25.maf0.1.rda")
+load("../data/genotype/3.FilteredGenotypeFile.MatrixFormat.noscaffold.hetFilter0.25.maf0.1.rda")
 
 dist <- 1
 neighborCors <- sapply(1:(nrow(genoMatrix)-dist),function(x) {if(x%%100000==0){print(x)};cor(genoMatrix[x,],genoMatrix[x+dist,],use="complete.obs")})
@@ -12,14 +12,14 @@ neighborDists[neighborDists<0] <- NA
 summary(neighborDists)
 
 
-pdf("../results/5.FilteredGeno.neighborCor.pdf")
+pdf("../results/4.FilteredGeno.neighborCor.pdf")
 hist(neighborCors,breaks=100)
 dev.off()
 
 neighbors <- data.table(chr=alleleTable$chr[-nrow(alleleTable)],pos=alleleTable$pos[-nrow(alleleTable)],neighborDists=neighborDists,neighborCors=neighborCors)
 
 
-pdf("../results/5.FilteredGeno.ChromsomeWideNeighboringSNP.LD.subset.pdf",width=20)
+pdf("../results/4.FilteredGeno.ChromsomeWideNeighboringSNP.LD.subset.pdf",width=20)
 for(i in 1:9){
   subsetN <- neighbors[neighbors$chr==i]
   subsetN <- subsetN[sample(1:nrow(subsetN),size = 10000,replace = FALSE)]
@@ -150,7 +150,7 @@ summary(filterDists)
 neighbors <- data.table(chr=filterInfo$chr[-nrow(filterInfo)],pos=filterInfo$pos[-nrow(filterInfo)],neighborDists=filterDists,neighborCors=filterCors)
 
 
-pdf("../results/5.BadSNPsFiltered.ChromsomeWideNeighboringSNP.LD.subset.pdf",width=20)
+pdf("../results/4.BadSNPsFiltered.ChromsomeWideNeighboringSNP.LD.subset.pdf",width=20)
 for(i in 1:9){
   subsetN <- neighbors[neighbors$chr==i]
   subsetN <- subsetN[sample(1:nrow(subsetN),size = 10000,replace = FALSE)]
@@ -158,5 +158,5 @@ for(i in 1:9){
 }
 dev.off()
 
-save(filterInfo,filterGeno,neighbors,file="../data/genotype/5.filteredSNPs.2kbDistThresh.0.5neighborLD.rda")
+save(filterInfo,filterGeno,neighbors,file="../data/genotype/4.filteredSNPs.2kbDistThresh.0.5neighborLD.rda")
 
