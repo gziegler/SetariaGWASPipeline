@@ -1,5 +1,5 @@
 library(data.table)
-load("../data/genotype/5.filteredSNPs.2kbDistThresh.0.5neighborLD.rda")
+load("../data/genotype/4.filteredSNPs.2kbDistThresh.0.5neighborLD.rda")
 
 #Filter SNPs with correlation >0.975
 #filter SNPs
@@ -75,7 +75,7 @@ summary(filterHighDists)
 
 neighbors <- data.table(chr=filterHighInfo$chr[-nrow(filterHighInfo)],pos=filterHighInfo$pos[-nrow(filterHighInfo)],neighborDists=filterHighDists,neighborCors=filterHighCors)
 
-pdf("../results/6.FilteredHighSNP.ChromsomeWideNeighboringSNP.LD.subset.pdf",width=20)
+pdf("../results/5.FilteredHighSNP.ChromsomeWideNeighboringSNP.LD.subset.pdf",width=20)
 for(i in 1:9){
   subsetN <- neighbors[neighbors$chr==i]
   subsetN <- subsetN[sample(1:nrow(subsetN),size = 10000,replace = FALSE)]
@@ -83,5 +83,5 @@ for(i in 1:9){
 }
 dev.off()
 
-save(neighbors,filterHighInfo,filterHighResults,filterHighGeno,file="../data/genotype/6.filteredSNPs.noHighCorSNPs.2kbDistThresh.0.5neighborLD.0.975LDfilter.rda")
+save(neighbors,filterHighInfo,filterHighResults,filterHighGeno,file="../data/genotype/5.filteredSNPs.noHighCorSNPs.2kbDistThresh.0.5neighborLD.0.975LDfilter.rda")
 

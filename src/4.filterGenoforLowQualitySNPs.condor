@@ -1,6 +1,6 @@
 ####################
 #
-# Runs 4.filterGenoforLowWualitySNPs.R
+# Runs 4.filterGenoforLowQualitySNPs.R
 # Reads in output of step 3
 #  Filters SNPs based on correlation to neighboring SNPs
 #
