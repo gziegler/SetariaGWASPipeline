@@ -83,5 +83,6 @@ for(i in 1:9){
 }
 dev.off()
 
-save(neighbors,filterHighInfo,filterHighResults,filterHighGeno,file="../data/genotype/5.filteredSNPs.noHighCorSNPs.2kbDistThresh.0.5neighborLD.0.975LDfilter.rda")
+#xz compression is super slow to save (<10min), but compresses enough (81mb vs 120mb) to get file size below 100mb for github and still uncompresses about as fast (30s)
+save(neighbors,filterHighInfo,filterHighGeno,file="../data/genotype/5.filteredSNPs.noHighCorSNPs.2kbDistThresh.0.5neighborLD.0.975LDfilter.rda",compress="xz",compression_level = 5)
 
