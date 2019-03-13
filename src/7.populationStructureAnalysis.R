@@ -69,6 +69,11 @@ Qmat <- read.table("../data/genotype/Qmatrix.fastSTRUCTURE.fromPU.tab",header=FA
 colnames(Qmat) <- c("Genotype","Pop1","Pop2","Pop3","Pop4")
 Qmat$Pop <- apply(Qmat,1,function(x){paste0("Pop",which.max(x[2:5]))})
 Qmat$Pop <- apply(Qmat,1,function(x){ifelse(any(x[2:5]>0.6),x[6],"Admixed")})
+Qmat <- Qmat[order(Qmat$Pop),]
+Qmelt <- melt(Qmat)
+Qmelt <- Qmelt[order(Qmelt$Pop,Qmelt$value),]
+Qmelt$Genotype <- factor(Qmelt$Genotype,levels = unique(Qmelt$Genotype))
+ggplot(Qmelt,aes(x=Genotype,y=value,fill=variable))+geom_bar(stat = "identity",position="stack")
 
 structTable <- merge(structTable,Qmat,by.x="lemnaID",by.y="Genotype",all.x=T,all.y=F)
 

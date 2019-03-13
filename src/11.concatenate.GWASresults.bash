@@ -1,0 +1,1 @@
+awk 'FNR==1 && NR!=1{next;}{print}' ../GWASresults/10*.csv > ../GWASresults/11.allStomataresults.csv
