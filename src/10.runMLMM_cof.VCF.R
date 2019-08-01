@@ -192,7 +192,7 @@ for(i in sample(traits)){
       everything$PCs <- traitInfo$PCs
     }  
     everything <- everything[everything$cofactor==1,]
-    write.table(everything,paste0("../GWASresults/10.mlmmStomataResults.",i,".csv"),row.names=FALSE,col.names=TRUE,sep=",")
+    write.table(everything,paste0("../GWASresults/10.mlmmResults.",i,".csv"),row.names=FALSE,col.names=TRUE,sep=",")
     rm(mygwas,genoMat,thisKin,thisChunkFiles,traitInfo,thisPheno,outExtBIC,outMbonf,outAll,everything)      
     
   }
