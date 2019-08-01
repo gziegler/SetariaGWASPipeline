@@ -5,6 +5,7 @@ if(!require(ionomicsUtils,quietly = TRUE)){
 }
 library(ionomicsUtils)
 library(data.table)
+#On windows
 library(mlmm)
 options(scipen = 999)
 
@@ -14,19 +15,24 @@ load("../data/genotype/5.filteredSNPs.noHighCorSNPs.2kbDistThresh.0.5neighborLD.
 
 
 #phenotype <- read.table("../GWASdatasets/1.Setaria_IR_2016_datsetset_GWAS.BLUPsandBLUEs.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
-phenotype <- read.table("../data/phenotype/9.StomatalDensity.phenotypes.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
+phenotype <- read.table("../data/phenotype/rawPhenotypeDatasets/IB007_PlantCV_for_GWAS.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
+phenotype$X <- NULL
+colnames(phenotype)[1] <- "Genotype"
 traits <- colnames(phenotype)[2:ncol(phenotype)]
 
 #######Open csv containing info about lines in Genotype file#####
 genoInfo <- read.table("../data/genotype/Setaria_597_diversity_samples.csv",sep=",",header=TRUE,stringsAsFactors = FALSE,comment.char = "")
-genoInfo$Genotype <- gsub("_setaria_12","",genoInfo$New_name)
+#genoInfo$Genotype <- gsub("_setaria_12","",genoInfo$New_name)
+genoInfo$Genotype <- genoInfo$New_name
 length(intersect(genoInfo$Genotype,phenotype$Genotype))
 setdiff(phenotype$Genotype,genoInfo$Genotype)
+#setdiff(genoInfo$Genotype,phenotype$Genotype)
+
 ####Just 2 (3 including b100) genotypes not found in genotype file
 ##writing out table of names to keep for vcf filtering
 keepLines <- data.frame(from=sapply(genoInfo$LIB[genoInfo$Genotype %in% c("A10.1",intersect(genoInfo$Genotype,phenotype$Genotype))],function(x){paste(rep(x,4),collapse = "_")}),
                         to=genoInfo$Genotype[genoInfo$Genotype %in% c("A10.1",intersect(genoInfo$Genotype,phenotype$Genotype))],stringsAsFactors = FALSE)
-keepLines$to[keepLines$to=="A10.1"] <- "A10"
+#keepLines$to[keepLines$to=="A10.1"] <- "A10"
 
 filterHighGeno <- filterHighGeno[,keepLines$from]
 stopifnot(identical(keepLines$from,colnames(filterHighGeno)))
