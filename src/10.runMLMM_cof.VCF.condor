@@ -9,10 +9,10 @@ universe         = vanilla
 notify_user      = Complete
 getenv           = true
 executable       = /usr/bin/bash
-arguments        = ./7.runMLMM_cof.VCF.bash
-log              = ../7.$(Cluster).$(Process).MLMM.log
-output           = ../7.$(Cluster).$(Process).MLMM.out
-error            = ../7.$(Cluster).$(Process).MLMM.error
+arguments        = ./10.runMLMM_cof.VCF.bash
+log              = ../10.$(Cluster).$(Process).MLMM.log
+output           = ../10.$(Cluster).$(Process).MLMM.out
+error            = ../10.$(Cluster).$(Process).MLMM.error
 request_cpus     = 15
 request_memory   = 60G
 
