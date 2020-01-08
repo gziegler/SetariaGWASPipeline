@@ -14,7 +14,7 @@ log              = ../10.$(Cluster).$(Process).MLMM.log
 output           = ../10.$(Cluster).$(Process).MLMM.out
 error            = ../10.$(Cluster).$(Process).MLMM.error
 request_cpus     = 15
-request_memory   = 50G
+request_memory   = 75G
 
 ##  Do not edit  ##
 accounting_group = group_tmockler

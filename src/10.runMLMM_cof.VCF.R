@@ -19,7 +19,7 @@ PCcofs <- 3 #use top N PCs
 load("../data/genotype/6.AstleBalding.synbreed.kinship.rda") #loads kinship
 load("../data/genotype/6.Eigenstrat.population.structure.50PCs.rda") #loads structData
 load("../data/genotype/5.filteredSNPs.noHighCorSNPs.2kbDistThresh.0.5neighborLD.0.975LDfilter.rda")#loads filterHighGeno, neighbors, filterHighInfo, filterHighResults
-
+rm(neighbors)
 
 #phenotype1 <- read.table("../data/phenotype/2.Setaria_IR_2016_datsetset_GWAS.BLUPsandBLUEs.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
 #phenotype <- read.table("../data/phenotype/0304_setaria_exp.ALL_days.BLUPS.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
@@ -74,6 +74,7 @@ filterHighInfo <- filterHighInfo[which(maf >= 0.05 & maf <= 0.95),]
 
 ####Add an X to the beginning of each SNP id, one of the functions below doesn't like it starting with a digit####
 row.names(filterHighGeno) <- paste0("X",filterHighInfo$chr,"_",filterHighInfo$pos)
+rm(filterHighInfo)
 
 dir.create("../mlmmTemp", showWarnings = FALSE)
 dir.create("../GWASresults", showWarnings = FALSE)
