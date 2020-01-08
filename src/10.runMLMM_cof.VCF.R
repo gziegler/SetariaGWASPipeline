@@ -12,7 +12,7 @@ library(ionomicsUtils)
 library(data.table)
 library(mlmm.gwas)
 options(scipen = 999)
-keepThresh <- 1e-4
+keepThresh <- 1e-3
 PCcofs <- 3 #use top N PCs 
 ###Code is also present, but not implemented, to use only PCs significantly correlated with trait
 
@@ -22,11 +22,12 @@ load("../data/genotype/5.filteredSNPs.noHighCorSNPs.2kbDistThresh.0.5neighborLD.
 
 
 #phenotype1 <- read.table("../data/phenotype/2.Setaria_IR_2016_datsetset_GWAS.BLUPsandBLUEs.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
-phenotype <- read.table("../data/phenotype/0304_setaria_exp.ALL_days.BLUPS.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
+#phenotype <- read.table("../data/phenotype/0304_setaria_exp.ALL_days.BLUPS.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
+phenotype <- read.table("../data/phenotype/050708_setaria_exp.ALL_days.BLUPS.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
 #get to 1 column per treatment/trait
 meltPhenotype <- reshape2::melt(phenotype,id.vars=c("genotype","trt.day"))
 meltPhenotype <- meltPhenotype[which(!(is.na(meltPhenotype$value))),]
-phenotype <- dcast(meltPhenotype,...~trt.day+variable)
+phenotype <- reshape2::dcast(meltPhenotype,...~trt.day+variable)
 colnames(phenotype)[1] <- "Genotype"
 #phenotype2 <- read.table("../data/phenotype/9.StomatalDensity.phenotypes.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
 #phenotype <- merge(phenotype1,phenotype2,by="Genotype",all=T)
@@ -71,6 +72,8 @@ filterHighGeno <- filterHighGeno[which(maf >= 0.05 & maf <= 0.95),]
 filterHighInfo <- filterHighInfo[which(maf >= 0.05 & maf <= 0.95),]
 #surprisingly this removes very few SNPs, probably because it was already at 0.1 for the whole pop
 
+####Add an X to the beginning of each SNP id, one of the functions below doesn't like it starting with a digit####
+row.names(filterHighGeno) <- paste0("X",filterHighInfo$chr,"_",filterHighInfo$pos)
 
 dir.create("../mlmmTemp", showWarnings = FALSE)
 dir.create("../GWASresults", showWarnings = FALSE)
@@ -97,7 +100,6 @@ for(i in sample(traits)){
     ####Reorder lines to alphabetical, kinship already is#####
     thisPheno <- thisPheno[order(names(thisPheno))]
     this.narrow.Genotype <- this.narrow.Genotype[,order(colnames(this.narrow.Genotype))]
-    row.names(this.narrow.Genotype) <- paste(filterHighInfo$chr,filterHighInfo$pos,sep="_")
     this.narrow.kinship <- this.narrow.kinship[order(row.names(this.narrow.kinship)),order(colnames(this.narrow.kinship))]
     this.narrow.structure <- this.narrow.structure[order(row.names(this.narrow.structure)),]
     
@@ -132,8 +134,6 @@ for(i in sample(traits)){
     #mygwas <- mlmm(Y=thisPheno,X=t(this.narrow.Genotype),K=this.narrow.kinship,maxsteps = 3,nbchunks = 3)
     #mygwas <- mlmm_cof(Y=thisPheno,X=t(this.narrow.Genotype),K=this.narrow.kinship,cofs=this.narrow.structure[,1:3],maxsteps = 3,nbchunks = 3)
     
-    ####Add an X to the beginning of each SNP id, one of the functions below doesn't like it starting with a digit####
-    row.names(this.narrow.Genotype) <- paste0("X",row.names(this.narrow.Genotype))
     mygwasNew <- mlmm_allmodels(Y=thisPheno,XX=list(t(this.narrow.Genotype)),KK=list(this.narrow.kinship),cofs=this.narrow.structure,maxsteps = 3,nbchunks = 3)
     #mygwasnocof <- mlmm_allmodels(Y=thisPheno,XX=list(t(this.narrow.Genotype)),KK=list(this.narrow.kinship),maxsteps = 3,nbchunks = 3)
     
