@@ -12,7 +12,8 @@ library(ionomicsUtils)
 library(data.table)
 library(mlmm.gwas)
 options(scipen = 999)
-keepThresh <- 1e-3
+keepThresh <- 1 #keep all SNPs less than this pvalue
+effectThresh <- 1e-4 #calculate effect size for all SNPs less than this pvalue
 PCcofs <- 3 #use top N PCs 
 ###Code is also present, but not implemented, to use only PCs significantly correlated with trait
 
@@ -23,11 +24,16 @@ rm(neighbors)
 
 #phenotype1 <- read.table("../data/phenotype/2.Setaria_IR_2016_datsetset_GWAS.BLUPsandBLUEs.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
 #phenotype <- read.table("../data/phenotype/0304_setaria_exp.ALL_days.BLUPS.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
-phenotype <- read.table("../data/phenotype/050708_setaria_exp.ALL_days.BLUPS.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
-#get to 1 column per treatment/trait
-meltPhenotype <- reshape2::melt(phenotype,id.vars=c("genotype","trt.day"))
-meltPhenotype <- meltPhenotype[which(!(is.na(meltPhenotype$value))),]
-phenotype <- reshape2::dcast(meltPhenotype,...~trt.day+variable)
+#phenotype <- read.table("../data/phenotype/050708_setaria_exp.ALL_days.BLUPS.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
+phenotype <- read.table("../data/phenotype/all_setaria_medians_for_gwas.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
+####Do just DAP18 and height in wet
+phenotype <- phenotype[,c("genotype",grep("height",colnames(phenotype),value=TRUE))]
+phenotype <- phenotype[,c("genotype",grep("wet",colnames(phenotype),value=TRUE))]
+phenotype <- phenotype[,c("genotype",grep("18",colnames(phenotype),value=TRUE))]
+#get to 1 column per treatment/trait (this was for the BLUPs files from Charles)
+# meltPhenotype <- reshape2::melt(phenotype,id.vars=c("genotype","trt.day"))
+# meltPhenotype <- meltPhenotype[which(!(is.na(meltPhenotype$value))),]
+# phenotype <- reshape2::dcast(meltPhenotype,...~trt.day+variable)
 colnames(phenotype)[1] <- "Genotype"
 #phenotype2 <- read.table("../data/phenotype/9.StomatalDensity.phenotypes.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
 #phenotype <- merge(phenotype1,phenotype2,by="Genotype",all=T)
@@ -185,8 +191,8 @@ for(i in sample(traits)){
     # res = sommer::mmer(fixed=fixed, random=~vs(id, Gu=KK.norm), data=data) #can add method = "emma" to get h2 almost exactly as they are in orig MLMM
     # h2 <- 1-as.vector(res$sigma[['units']])/Reduce("+", res$sigma) #It's estimating H2 as 1-kinV/totalV
     # keepSNPs$pseudoh <- as.numeric(h2)
-    
-    for(snp in 1:nrow(keepSNPs)){
+    effectSNPs <- which(keepSNPs$pval <= effectThresh)
+    for(snp in effectSNPs){
       message("Calculating effect size for ",keepSNPs$SNP[snp])
       thisSNP <- as.data.frame(this.narrow.Genotype[keepSNPs$SNP[snp],])
       colnames(thisSNP) <- keepSNPs$SNP[snp]
@@ -195,7 +201,8 @@ for(i in sample(traits)){
       thisSNP[thisSNP[,1]==2,1] <- "11"
       thisSNP[,1] <- factor(thisSNP[,1])
       eff.estimations <- Estimation_allmodels(thisPheno,thisSNP,list(this.narrow.kinship),this.narrow.structure)
-      
+      #microbenchmark(effEst = {eff.estimations <- Estimation_allmodels(thisPheno,thisSNP,list(this.narrow.kinship),this.narrow.structure)},
+      #               time=10,unit="relative")
       ###Using lme4qtl gives the same effect sizes
       #design <- data.frame(Y=thisPheno,X0,this.narrow.structure[,1:3],thisSNP,ind=as.factor(names(thisPheno)))
       #lmerRes <- lme4qtl::relmatLmer(Y ~ 0 + mu + PC1 + PC2 + PC3 + X7_19588148 + (1|ind),design,relmat=list(ind=this.narrow.kinship))
@@ -231,7 +238,11 @@ for(i in sample(traits)){
       
     }#end calculate effect sizes for SNPs
     keepSNPs$SNP <- sub("^X","",keepSNPs$SNP)
-    write.table(keepSNPs,paste0("../GWASresults/10.mlmmResults-",i,".csv"),row.names=FALSE,col.names=TRUE,sep=",")
+    #write.table(keepSNPs,paste0("../GWASresults/10.mlmmResults-",i,".csv"),row.names=FALSE,col.names=TRUE,sep=",")
+    ##Write in highly compressed rda, write_parquet is crazy fast, but needs to be installed on the server
+    save(keepSNPs,file=paste0("../GWASresults/10.mlmmResults-",i,".rda"),compress="xz",compression_level = 5)
+    #arrow::write_parquet(keepSNPs,sink=paste0("../GWASresults/10.mlmmResults-",i,".parquet"),compression="gzip",compression_level = 5)
+    #parqSNPs <- arrow::read_parquet(file=paste0("../GWASresults/10.mlmmResults-",i,".parquet"),as_data_frame = TRUE)
     rm(mygwasNew,keepSNPs,this.narrow.Genotype,thisPheno,this.narrow.kinship,this.narrow.structure)      
     
     
