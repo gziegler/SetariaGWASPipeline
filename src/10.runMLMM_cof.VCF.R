@@ -13,7 +13,7 @@ library(data.table)
 library(mlmm.gwas)
 options(scipen = 999)
 keepThresh <- 1 #keep all SNPs less than this pvalue
-effectThresh <- 1e-4 #calculate effect size for all SNPs less than this pvalue
+effectThresh <- 1e-5 #calculate effect size for all SNPs less than this pvalue
 PCcofs <- 3 #use top N PCs 
 ###Code is also present, but not implemented, to use only PCs significantly correlated with trait
 
@@ -26,15 +26,34 @@ rm(neighbors)
 #phenotype <- read.table("../data/phenotype/0304_setaria_exp.ALL_days.BLUPS.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
 #phenotype <- read.table("../data/phenotype/050708_setaria_exp.ALL_days.BLUPS.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
 phenotype <- read.table("../data/phenotype/all_setaria_medians_for_gwas.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
-####Do just DAP18 and height in wet
-phenotype <- phenotype[,c("genotype",grep("height",colnames(phenotype),value=TRUE))]
-phenotype <- phenotype[,c("genotype",grep("wet",colnames(phenotype),value=TRUE))]
-phenotype <- phenotype[,c("genotype",grep("18",colnames(phenotype),value=TRUE))]
+#phenotype <- read.table("../data/phenotype/ALL_setaria_exp.ALL_days.RANKS.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
+
+####Do just DAP18 and height in wet, from IB005,IB007,IB008
+# phenotype <- phenotype[phenotype$exp.code %in% c("IB005","IB007","IB008"),]
+# phenotype <- phenotype[phenotype$treatment == "wet",]
+# phenotype <- phenotype[phenotype$treatment == "wet",]
+# phenotype <- phenotype[phenotype$dap == 18,]
+#phenotype <- phenotype[,c("exp.code","genotype","treatment","dap",grep("height",colnames(phenotype),value=TRUE))]
+#get average rank within experiment, then average across experiments
+#meanPhenotype <- phenotype %>% group_by(exp.code,genotype,treatment,dap) %>% summarise_if(is.numeric,list(~mean(.,na.rm=TRUE)))
+
+# meanAllExpPhenotype <- meanPhenotype %>% group_by(genotype,treatment,dap) %>% summarise_if(is.numeric,list(~mean(.,na.rm=TRUE)))
+# meanAllExpPhenotype$exp.code <- "meanIB005toIB008"
+# meltPhenotype <- rbind(meanPhenotype,meanAllExpPhenotype)
+# meltPhenotype$exp.trt.day <- paste(meltPhenotype$exp.code,meltPhenotype$treatment,meltPhenotype$dap,sep=".")
+# meltPhenotype <- reshape2::melt(meltPhenotype[,c("genotype","avg.sv.height","exp.trt.day")],id.vars=c("genotype","exp.trt.day"))
+# phenotype <- reshape2::dcast(meltPhenotype,...~variable+exp.trt.day)
+# 
+###Code for all_setaria_medians_for_gwas.fromCharles.csv 
+# phenotype <- phenotype[,c("genotype",grep("height",colnames(phenotype),value=TRUE))]
+# phenotype <- phenotype[,c("genotype",grep("wet",colnames(phenotype),value=TRUE))]
+# phenotype <- phenotype[,c("genotype",grep("18",colnames(phenotype),value=TRUE))]
 #get to 1 column per treatment/trait (this was for the BLUPs files from Charles)
 # meltPhenotype <- reshape2::melt(phenotype,id.vars=c("genotype","trt.day"))
 # meltPhenotype <- meltPhenotype[which(!(is.na(meltPhenotype$value))),]
 # phenotype <- reshape2::dcast(meltPhenotype,...~trt.day+variable)
 colnames(phenotype)[1] <- "Genotype"
+#colnames(phenotype)[2:ncol(phenotype)] <- paste0(colnames(phenotype)[2:ncol(phenotype)],"_rank")
 #phenotype2 <- read.table("../data/phenotype/9.StomatalDensity.phenotypes.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
 #phenotype <- merge(phenotype1,phenotype2,by="Genotype",all=T)
 #phenotype$Awning_dry <- NULL
