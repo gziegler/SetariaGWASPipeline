@@ -1,3 +1,5 @@
+#Some phenotypes when there are less than 100 observations 
+#cause an error in sommer (function used for GWAS)
 rm(list = ls())
 if(!require(ionomicsUtils,quietly = TRUE)){
   library(devtools)
@@ -25,8 +27,9 @@ rm(neighbors)
 #phenotype1 <- read.table("../data/phenotype/2.Setaria_IR_2016_datsetset_GWAS.BLUPsandBLUEs.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
 #phenotype <- read.table("../data/phenotype/0304_setaria_exp.ALL_days.BLUPS.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
 #phenotype <- read.table("../data/phenotype/050708_setaria_exp.ALL_days.BLUPS.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
-phenotype <- read.table("../data/phenotype/all_setaria_medians_for_gwas.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
+#phenotype <- read.table("../data/phenotype/all_setaria_medians_for_gwas.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
 #phenotype <- read.table("../data/phenotype/ALL_setaria_exp.ALL_days.RANKS.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
+phenotype <- read.table("../data/phenotype/ALL_setaria_exp.ALL_days.TRANS_STAND.wet_dry_RATIO.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
 
 ####Do just DAP18 and height in wet, from IB005,IB007,IB008
 # phenotype <- phenotype[phenotype$exp.code %in% c("IB005","IB007","IB008"),]
@@ -40,9 +43,38 @@ phenotype <- read.table("../data/phenotype/all_setaria_medians_for_gwas.fromChar
 # meanAllExpPhenotype <- meanPhenotype %>% group_by(genotype,treatment,dap) %>% summarise_if(is.numeric,list(~mean(.,na.rm=TRUE)))
 # meanAllExpPhenotype$exp.code <- "meanIB005toIB008"
 # meltPhenotype <- rbind(meanPhenotype,meanAllExpPhenotype)
-# meltPhenotype$exp.trt.day <- paste(meltPhenotype$exp.code,meltPhenotype$treatment,meltPhenotype$dap,sep=".")
-# meltPhenotype <- reshape2::melt(meltPhenotype[,c("genotype","avg.sv.height","exp.trt.day")],id.vars=c("genotype","exp.trt.day"))
-# phenotype <- reshape2::dcast(meltPhenotype,...~variable+exp.trt.day)
+phenotype$exp.day <- paste(phenotype$exp.code,phenotype$dap,sep=".")
+phenotype$exp.code <- NULL
+phenotype$dap <- NULL
+
+single.measure.traits <- c("area.slope",
+                           "CR_num",
+                           "CR.Angle",
+                           "d13C",
+                           "CN_ratio",
+                           "gN.m2",
+                           "gC.m2",
+                           "leaf.area",
+                           "leaf.weight",
+                           "spec.leaf.area",
+                           "stom.density")
+allSingleTraits <- unique(grep(paste(single.measure.traits,collapse="|"), colnames(phenotype), value=TRUE))
+meltPhenotype <- reshape2::melt(phenotype,id.vars=c("genotype","exp.day"))
+phenotype <- reshape2::dcast(meltPhenotype,...~variable+exp.day)
+rm(meltPhenotype)
+
+delCols <- character(0)
+for(i in allSingleTraits){
+  identicalCols <- unique(grep(i, colnames(phenotype), value=TRUE))
+  exps <- unique(sapply(strsplit(identicalCols,"\\.\\s*(?=[^.]+$)",perl=TRUE),"[",1))
+  for(j in exps){
+    matchCols <- unique(grep(j, colnames(phenotype), value=TRUE))
+    matchCols <- matchCols[2:length(matchCols)]
+    delCols <- c(delCols,matchCols)
+  }
+}
+phenotype <- phenotype[,!(names(phenotype) %in% delCols)]
+
 # 
 ###Code for all_setaria_medians_for_gwas.fromCharles.csv 
 # phenotype <- phenotype[,c("genotype",grep("height",colnames(phenotype),value=TRUE))]
