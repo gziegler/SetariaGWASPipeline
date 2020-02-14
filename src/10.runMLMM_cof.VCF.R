@@ -165,17 +165,17 @@ for(i in sample(traits)){
     stopifnot(identical(colnames(this.narrow.Genotype),names(thisPheno)))
     stopifnot(identical(row.names(this.narrow.structure),names(thisPheno)))
     
-    pcVsPheno <- data.frame(PC=numeric(0),pVal=numeric(0),r2=numeric(0))
-    pcVsPheno <- rbindlist(list(pcVsPheno,
-                                data.frame(PC=1, summary(lm(thisPheno ~ this.narrow.structure[,1]))$coefficients[2,4], summary(lm(thisPheno ~ this.narrow.structure[,1]))$r.squared)),use.names=FALSE)
-    #for(pcCol in 2:ncol(this.narrow.structure)){
-    for(pcCol in 2:10){
-      pcVsPheno <- rbindlist(list(pcVsPheno,
-                                  data.frame(pcCol, summary(lm(thisPheno ~ this.narrow.structure[,1:pcCol]))$coefficients[(pcCol+1),4], 
-                                             summary(lm(thisPheno ~ this.narrow.structure[,1:pcCol]))$r.squared - 
-                                               summary(lm(thisPheno ~ this.narrow.structure[,1:(pcCol-1)]))$r.squared)),use.names = F)
-    }
-    pcsToUse <- pcVsPheno$PC[which(pcVsPheno$pVal <= 0.001)]
+    # pcVsPheno <- data.frame(PC=numeric(0),pVal=numeric(0),r2=numeric(0))
+    # pcVsPheno <- rbindlist(list(pcVsPheno,
+    #                             data.frame(PC=1, summary(lm(thisPheno ~ this.narrow.structure[,1]))$coefficients[2,4], summary(lm(thisPheno ~ this.narrow.structure[,1]))$r.squared)),use.names=FALSE)
+    # #for(pcCol in 2:ncol(this.narrow.structure)){
+    # for(pcCol in 2:10){
+    #   pcVsPheno <- rbindlist(list(pcVsPheno,
+    #                               data.frame(pcCol, summary(lm(thisPheno ~ this.narrow.structure[,1:pcCol]))$coefficients[(pcCol+1),4], 
+    #                                          summary(lm(thisPheno ~ this.narrow.structure[,1:pcCol]))$r.squared - 
+    #                                            summary(lm(thisPheno ~ this.narrow.structure[,1:(pcCol-1)]))$r.squared)),use.names = F)
+    # }
+    # pcsToUse <- pcVsPheno$PC[which(pcVsPheno$pVal <= 0.001)]
     #traitInfo <- data.frame(phenotype=i,genoSize=nrow(this.narrow.Genotype),phenoSize=length(thisPheno),PCs=paste(pcsToUse,collapse=":"))
     traitInfo <- data.frame(phenotype=i,genoSize=nrow(this.narrow.Genotype),phenoSize=length(thisPheno),PCs=paste(1:PCcofs,collapse=":"))
     print(traitInfo)
