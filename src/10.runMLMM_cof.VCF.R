@@ -146,7 +146,7 @@ for(i in sample(traits)){
     names(thisPheno) <- phenotype$Genotype
     thisPheno <- thisPheno[which(!(is.na(thisPheno)))]
     commonLines <- intersect(colnames(filterHighGeno),names(thisPheno))
-    if(length(commonLines)<10){
+    if(length(commonLines)<75){
       warning("Phenotype ",i," only has ",length(commonLines)," genotyped observations. Not running GWAS")
       next;
     }
