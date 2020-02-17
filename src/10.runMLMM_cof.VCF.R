@@ -95,6 +95,11 @@ colnames(phenotype)[1] <- "Genotype"
 #colnames(phenotype)[2] <- "Genotype"
 #phenotype$Genotype <- gsub("TB_","TB_setaria_12_",phenotype$Genotype)
 traits <- colnames(phenotype)[2:ncol(phenotype)]
+missingPhenos <- read.table("../10b.skippedPhenos.csv",sep=",",header=FALSE,stringsAsFactors = FALSE,comment.char = "")
+phenotype <- phenotype[,c("Genotype",missingPhenos$V1)]
+traits <- missingPhenos$V1
+phenotype[mapply(is.infinite, phenotype)] <- NA
+
 
 #######Open csv containing info about lines in Genotype file#####
 genoInfo <- read.table("../data/genotype/Setaria_597_diversity_samples.csv",sep=",",header=TRUE,stringsAsFactors = FALSE,comment.char = "")
