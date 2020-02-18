@@ -17,6 +17,6 @@ request_cpus     = 15
 request_memory   = 75G
 
 ##  Do not edit  ##
-accounting_group = group_tmockler
+accounting_group = $ENV(CONDOR_GROUP)
 ###################
 queue

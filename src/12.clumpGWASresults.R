@@ -1,23 +1,31 @@
+#Expects intput to tell it which chromsome to clump#
+args <- commandArgs(trailingOnly = TRUE)
+chr <- ifelse(!(is.na(args[1])),args[1],4) #default to 4 for testing
+message("Running clumping algorithm on chromosome ",chr)
 ####Make clumps of all vs all at n window size####
 ###Begins clumping at highest p-value SNPs first (so they are centered in a clump)
 #####Go into each of those clumps and calculate LD between all SNPs in each clump####
 ######This should be similar, but not identical to PLINKs --clump command, in that I don't use 'index' SNPs to seed the clumps (except maybe for the stringent
 ##vs all)
-rm(list=ls())
+#rm(list=ls())
 source("ldCalculationFunction.R")
+library(feather)
 library(data.table)
 library(plyr)
 library(reshape2)
 library(dplyr)
 ldWin <- 250000 #distance around target SNP to consider SNPs in a clump, 250k is PLINK's default
-r2 <- 0.5 #Threshold to include SNPs in a clump, 0.5 is PLINK's default
+r2 <- 0.75 #Threshold to include SNPs in a clump, 0.5 is PLINK's default
 
-load("../GWASresults/11.CombinedMLMMResultsWithFisherPval.filtered.rda") #loads object filterRes
+#load("../GWASresults/11.CombinedMLMMResultsWithFisherPval.filtered.rda") #loads object filterRes
+#load("../GWASresults/11.allLTphenos.IB005to8.CombinedMLMMResultsWithFisherPval.filtered.rda") #loads object filterRes
+snpTable <- feather::read_feather("../GWASresults/11.allLTphenos.IB003to4.CombinedMLMMResultsWithFisherPval.allSNPs.feather")
 #use next to lines to further filter filterRes if desired
 #fisherPcols <- grep("fisherP",colnames(filterRes),value=TRUE)
 #filterRes <- filterRes[filterRes[, Reduce(`|`, lapply(.SD, `<=`, 1e-3)),.SDcols = fisherPcols]] #keep phenotype columns where fisherP <= firstThresh
-snpTable <- filterRes
-rm(filterRes)
+#snpTable <- filterRes
+#rm(filterRes)
+
 snpTable$chrom <- as.numeric(sapply(strsplit(snpTable$SNP,"_"),"[",1))
 snpTable$pos <- as.numeric(sapply(strsplit(snpTable$SNP,"_"),"[",2))
 
@@ -37,7 +45,7 @@ load("../data/genotype/5.filteredSNPs.noHighCorSNPs.2kbDistThresh.0.5neighborLD.
 
 ###Use phenotype to just get down to lines present in this trait###
 #phenotype <- read.table("../data/phenotype/0304_setaria_exp.ALL_days.BLUPS.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
-phenotype <- read.table("../data/phenotype/all_setaria_medians_for_gwas.fromCharles.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
+phenotype <- read.table("../data/phenotype/ALL_setaria_exp.ALL_days.TRANS_STAND.wet_dry_RATIO.csv",sep=",",header=TRUE,stringsAsFactors = FALSE)
 colnames(phenotype)[1] <- "Genotype"
 phenotypedGenos <- unique(phenotype$Genotype)
 
@@ -83,71 +91,47 @@ clump <- 1 ####Current clump being analyzed
 snpTable$clump <- NA
 snpTable <- as.data.frame(snpTable)
 snpTable <- snpTable[order(snpTable$avg.sv.height_wet_18_fisherP,as.numeric(snpTable$chrom),as.numeric(snpTable$pos)),]
-for(i in sort(unique(snpTable$chrom))){
-  message(i)
-  thisChr <- snpTable[which(snpTable$chrom==i),]
-  thisGeno <- genotype[snpInfo$chrom==i,]
-  thisInfo <- snpInfo[snpInfo$chrom==i,]
-  for(j in 1:nrow(thisChr)){
-    if(!(is.na(thisChr$clump[j]))){ #this snp is already in a clump
-      next;
+#for(i in sort(unique(snpTable$chrom))){
+message("Beginning clumping of chromosome ", chr)
+thisChr <- snpTable[which(snpTable$chrom==chr),]
+rm(snpTable)
+thisGeno <- genotype[snpInfo$chrom==chr,]
+thisInfo <- snpInfo[snpInfo$chrom==chr,]
+for(j in 1:nrow(thisChr)){
+  if(j %% 2500 == 0){
+    cat("Analysing input row:",j,"of:",nrow(thisChr),"\n")
+  }
+  if(!(is.na(thisChr$clump[j]))){ #this snp is already in a clump
+    next;
+  }
+  closeSnps <- thisChr[as.numeric(thisChr$pos) > as.numeric(thisChr$pos[j])-ldWin & 
+                         as.numeric(thisChr$pos) < as.numeric(thisChr$pos[j])+ldWin,]
+  closeSnps <- closeSnps[which(is.na(closeSnps$clump)),]
+  if(nrow(closeSnps)==1){####Nothing around this SNP, it's a single snp clump####
+    #snpTable$clump[snpTable$SNP==closeSnps$SNP] <- clump
+    thisChr$clump[thisChr$SNP==closeSnps$SNP] <- clump
+    clump <- clump+1      
+  }else{
+    ############Calculate LD between current SNP and others in window##############
+    results <- data.frame()
+    for(k in closeSnps$SNP){
+      thisLD <- LDnumGeno(thisGeno[as.character(thisChr$SNP[j]),],thisGeno[k,])
+      results <- rbind(results,data.frame(candidate=as.character(thisChr$SNP[j]),target=k,candidateBP=as.numeric(thisChr$pos[j]),dp=thisLD$`D'`,dpval=thisLD$`P-value`,r2=thisLD$`R^2`,n=thisLD$`n`,bp=closeSnps$pos[closeSnps$SNP==k][1]))
     }
-    closeSnps <- thisChr[as.numeric(thisChr$pos) > as.numeric(thisChr$pos[j])-ldWin & 
-                           as.numeric(thisChr$pos) < as.numeric(thisChr$pos[j])+ldWin,]
-    closeSnps <- closeSnps[which(is.na(closeSnps$clump)),]
-    if(nrow(closeSnps)==1){####Nothing around this SNP, it's a single snp clump####
-      snpTable$clump[snpTable$SNP==closeSnps$SNP] <- clump
-      thisChr$clump[thisChr$SNP==closeSnps$SNP] <- clump
-      clump <- clump+1      
-    }else{
-      ############Calculate LD between current SNP and others in window##############
-      results <- data.frame()
-      for(k in closeSnps$SNP){
-        thisLD <- LDnumGeno(thisGeno[as.character(thisChr$SNP[j]),],thisGeno[k,])
-        results <- rbind(results,data.frame(candidate=as.character(thisChr$SNP[j]),target=k,candidateBP=as.numeric(thisChr$pos[j]),dp=thisLD$`D'`,dpval=thisLD$`P-value`,r2=thisLD$`R^2`,n=thisLD$`n`,bp=closeSnps$pos[closeSnps$SNP==k][1]))
-      }
-      results <- results[results$r2 >= r2,]
-      snpTable$clump[snpTable$SNP %in% results$target] <- clump
-      thisChr$clump[thisChr$SNP %in% results$target] <- clump
-      clump <- clump+1
-    }
+    results <- results[results$r2 >= r2,]
+    #snpTable$clump[snpTable$SNP %in% results$target] <- clump
+    thisChr$clump[thisChr$SNP %in% results$target] <- clump
+    clump <- clump+1
   }
 }
-snpTable <- snpTable[order(as.numeric(snpTable$chrom),as.numeric(snpTable$pos)),]
-pvalCols <- grep("pval|fisherP",colnames(snpTable),value=TRUE)
-setDT(snpTable)
-summariseSNP <- snpTable[, lapply(.SD, min,na.rm=TRUE),by=clump,.SDcols = pvalCols] #get minimum pvalue for each snp from each clump
+#}
 
-#Add chromsome and range to each SNP
-clumpPos <- snpTable %>% group_by(clump) %>% summarise(chrom=min(chrom),minBP=min(pos),maxBP=max(pos),nSNPs=n())
-summariseSNP <- merge(clumpPos,summariseSNP,by="clump")
-setDT(summariseSNP)
-#recalculate fisher pvals
-#Deconvulte Trait ID into a table
-pvalCols <- grep("pval",colnames(snpTable),value=TRUE)
-traitTable <- data.frame(Phenotype = sapply(strsplit(pvalCols,"_"),"[",1),
-                         DAP =       as.numeric(sapply(strsplit(sapply(strsplit(sapply(strsplit(pvalCols,"_"),"[",2),"\\."),"[",3),"-"),"[",1)),
-                         Treatment = sapply(strsplit(sapply(strsplit(pvalCols,"_"),"[",2),"\\."),"[",2),
-                         Experiment = sapply(strsplit(sapply(strsplit(pvalCols,"_"),"[",2),"\\."),"[",1),
-                         colID = pvalCols,
-                         stringsAsFactors = FALSE)
+snpTable <- thisChr[order(as.numeric(thisChr$chrom),as.numeric(thisChr$pos)),]
+rm(thisChr)
+dir.create("../GWASresults/clumpRes", showWarnings = FALSE)
+feather::write_feather(snpTable,path=paste0("../GWASresults/clumpRes/12.IB003toIB004.CombinedMLMMResultsWithFisherPval.allSNPs.clumpCol.chr",chr,".feather"))
 
-fisher_combine_pvals=function(pval_list){pchisq((sum(log(pval_list))*-2), df=length(pval_list)*2, lower.tail=F)}
-for(pheno in unique(traitTable$Phenotype)){
-  for(dap in unique(traitTable$DAP[which(traitTable$Phenotype==pheno)])){
-    for(treat in unique(traitTable$Treatment[which(traitTable$Phenotype==pheno & traitTable$DAP==dap)])){
-      message(pheno," ",dap," ",treat,"\n")
-      thisTraitCols <- grep("pval",traitTable$colID[which(traitTable$Phenotype==pheno & traitTable$DAP==dap & traitTable$Treatment==treat)],value=TRUE)
-      summariseSNP[,paste(pheno,treat,dap,"fisherPclump",sep="_") := fisher_combine_pvals(.SD),by=1:nrow(summariseSNP),.SDcols = thisTraitCols]
-    }
-  }
-}
-
-###Use this when there are more than one trait
-#summariseMelt <- melt(summariseSNP[,c("clump","chrom","minBP","maxBP",traitCols)],id.vars = c("clump","chrom","minBP","maxBP"))
-summariseSNP$fisherLogP <- -log10(summariseSNP$avg.sv.height_wet_18_fisherPclump)
-filteredSNP <- summariseSNP[summariseSNP$fisherLogP > 7,]
-write.table(filteredSNP,"../results/12.clumpColumn.GWASresults.fisherPcombinedAllexp.csv",sep=",",col.names=TRUE,row.names=FALSE)
+####Notes from initial testing####
 ###firstThresh of 1e-3 returns final of 253 SNPs > logp5
 ###firstThresh of 1e-2 returns final of 360 SNPs > logp5
 ###firstThresh of 1e-3 returns final of 144 SNPs > logp6
