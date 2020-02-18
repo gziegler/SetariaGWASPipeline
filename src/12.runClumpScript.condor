@@ -10,9 +10,9 @@ notify_user      = Complete
 getenv           = true
 executable       = /usr/bin/Rscript
 arguments        = ./12.clumpGWASresults.R $(group)
-log              = ../$(Cluster).$(Process).$(group).clump.log
-output           = ../$(Cluster).$(Process).$(group).clump.out
-error            = ../$(Cluster).$(Process).$(group).clump.error
+log              = ../12.$(Cluster).$(Process).$(group).clump.log
+output           = ../12.$(Cluster).$(Process).$(group).clump.out
+error            = ../12.$(Cluster).$(Process).$(group).clump.error
 request_cpus     = 1
 request_memory   = 60G
 
