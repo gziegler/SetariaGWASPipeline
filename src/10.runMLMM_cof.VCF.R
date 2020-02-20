@@ -68,7 +68,7 @@ for(i in allSingleTraits){
   identicalCols <- unique(grep(i, colnames(phenotype), value=TRUE))
   exps <- unique(sapply(strsplit(identicalCols,"\\.\\s*(?=[^.]+$)",perl=TRUE),"[",1))
   for(j in exps){
-    matchCols <- unique(grep(j, colnames(phenotype), value=TRUE))
+    matchCols <- unique(grep(paste0("^",j), colnames(phenotype), value=TRUE))
     matchCols <- matchCols[2:length(matchCols)]
     delCols <- c(delCols,matchCols)
   }
@@ -95,7 +95,7 @@ colnames(phenotype)[1] <- "Genotype"
 #colnames(phenotype)[2] <- "Genotype"
 #phenotype$Genotype <- gsub("TB_","TB_setaria_12_",phenotype$Genotype)
 traits <- colnames(phenotype)[2:ncol(phenotype)]
-missingPhenos <- read.table("../10b.skippedPhenos.csv",sep=",",header=FALSE,stringsAsFactors = FALSE,comment.char = "")
+missingPhenos <- read.table("../10b.skippedPhenos.spec.leaf.area.csv",sep=",",header=FALSE,stringsAsFactors = FALSE,comment.char = "")
 phenotype <- phenotype[,c("Genotype",missingPhenos$V1)]
 traits <- missingPhenos$V1
 phenotype[mapply(is.infinite, phenotype)] <- NA
