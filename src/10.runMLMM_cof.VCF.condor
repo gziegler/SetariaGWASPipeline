@@ -13,8 +13,8 @@ arguments        = ./10.runMLMM_cof.VCF.bash
 log              = ../10.$(Cluster).$(Process).MLMM.log
 output           = ../10.$(Cluster).$(Process).MLMM.out
 error            = ../10.$(Cluster).$(Process).MLMM.error
-request_cpus     = 15
-request_memory   = 75G
+request_cpus     = 5
+request_memory   = 20G
 
 ##  Do not edit  ##
 accounting_group = $ENV(CONDOR_GROUP)
